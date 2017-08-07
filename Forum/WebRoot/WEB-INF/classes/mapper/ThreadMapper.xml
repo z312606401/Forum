@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="mapper.ThreadMapper" >
+  <resultMap id="BaseResultMap" type="model.Thread" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="dateCreated" property="datecreated" jdbcType="TIMESTAMP" />
+    <result column="deleted" property="deleted" jdbcType="BIT" />
+    <result column="version" property="version" jdbcType="INTEGER" />
+    <result column="dateLastReplied" property="datelastreplied" jdbcType="TIMESTAMP" />
+    <result column="hit" property="hit" jdbcType="INTEGER" />
+    <result column="ipCreated" property="ipcreated" jdbcType="VARCHAR" />
+    <result column="readonly" property="readonly" jdbcType="BIT" />
+    <result column="replyCount" property="replycount" jdbcType="INTEGER" />
+    <result column="title" property="title" jdbcType="VARCHAR" />
+    <result column="topped" property="topped" jdbcType="BIT" />
+    <result column="author_id" property="authorId" jdbcType="INTEGER" />
+    <result column="author_last_replied_id" property="authorLastRepliedId" jdbcType="INTEGER" />
+    <result column="board_id" property="boardId" jdbcType="INTEGER" />
+  </resultMap>
+  <resultMap id="AllResultMap" type="model.Thread" extends="BaseResultMap" >
+    <result column="content" property="content" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <resultMap id="Thread_PersonResultMap" type="model.Thread" extends="BaseResultMap" >
+    <association property="author" column="author_id" select="mapper.PersonMapper.selectByPrimaryKey" />
+  </resultMap>
+  <resultMap id="Thread_xxResultMap" type="model.Thread" extends="Thread_PersonResultMap" >
+    <association property="authorLastReplied" column="author_last_replied_id" select="mapper.PersonMapper.selectByPrimaryKey" />
+  </resultMap>
+  <resultMap id="Thread_xxxResultMap" type="model.Thread" extends="Thread_PersonResultMap" >
+    <association property="board" column="board_id" select="mapper.BoardMapper.selectBoardById" />
+  </resultMap>
+  
+  <sql id="Base_Column_List" >
+    id, dateCreated, deleted, version, dateLastReplied, hit, ipCreated, readonly, replyCount, 
+    title, topped, author_id, author_last_replied_id, board_id
+  </sql>
+  <sql id="All_Column_List" >
+    id, dateCreated, deleted, version,content ,dateLastReplied, hit, ipCreated, readonly, replyCount, 
+    title, topped, author_id, author_last_replied_id, board_id
+  </sql>
+
+  <select id="findThreadByThread_id" resultMap="Thread_PersonResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from thread
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+  <select id="getCountByBoardId" parameterType="java.lang.Integer" resultType="java.lang.Integer" >
+    select count(*) from thread
+    where board_id=#{boardId,jdbcType=INTEGER}
+  </select>
+  
+  <select id="list" parameterType="java.lang.Integer" resultMap="Thread_xxResultMap">
+  	select
+  	<include refid="Base_Column_List" />
+  	from thread where board_id=#{boardId,jdbcType=INTEGER} order by dateLastReplied desc
+  </select>
+  
+   <select id="selectThreadContent" resultMap="Thread_xxxResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="All_Column_List" />
+    from thread
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+  <select id="selectCurrentThread" resultType="java.lang.Integer" parameterType="String" >
+    select id from thread where dateCreated =
+    (select max(dateCreated) from (select * from thread where title = #{title,jdbcType=VARCHAR}) lsb)
+  </select>
+  
+  <update id="updateHit" parameterType="java.lang.Integer" >
+    update thread
+    set hit = hit+1
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  
+  <update id="updateThread">
+  	update thread set replyCount=replyCount+1, 
+  	author_last_replied_id=#{replyId}, dateLastReplied=#{date}
+  	where id=#{id}
+  </update>
+
+  <select id="selectByPrimaryKey" resultMap="AllResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="All_Column_List" />
+    from thread
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <insert id="insert" parameterType="model.Thread" >
+    insert into thread (id, dateCreated, deleted, 
+      version, dateLastReplied, hit, 
+      ipCreated, readonly, replyCount, 
+      title, topped, author_id, 
+      author_last_replied_id, board_id, content
+      )
+    values (#{id,jdbcType=INTEGER}, #{datecreated,jdbcType=TIMESTAMP}, #{deleted,jdbcType=BIT}, 
+      #{version,jdbcType=INTEGER}, #{datelastreplied,jdbcType=TIMESTAMP}, #{hit,jdbcType=INTEGER}, 
+      #{ipcreated,jdbcType=VARCHAR}, #{readonly,jdbcType=BIT}, #{replycount,jdbcType=INTEGER}, 
+      #{title,jdbcType=VARCHAR}, #{topped,jdbcType=BIT}, #{authorId,jdbcType=INTEGER}, 
+      #{authorLastRepliedId,jdbcType=INTEGER}, #{boardId,jdbcType=INTEGER}, #{content,jdbcType=LONGVARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="model.Thread" >
+    insert into thread
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="datecreated != null" >
+        dateCreated,
+      </if>
+      <if test="deleted != null" >
+        deleted,
+      </if>
+      <if test="version != null" >
+        version,
+      </if>
+      <if test="datelastreplied != null" >
+        dateLastReplied,
+      </if>
+      <if test="hit != null" >
+        hit,
+      </if>
+      <if test="ipcreated != null" >
+        ipCreated,
+      </if>
+      <if test="readonly != null" >
+        readonly,
+      </if>
+      <if test="replycount != null" >
+        replyCount,
+      </if>
+      <if test="title != null" >
+        title,
+      </if>
+      <if test="topped != null" >
+        topped,
+      </if>
+      <if test="authorId != null" >
+        author_id,
+      </if>
+      <if test="authorLastRepliedId != null" >
+        author_last_replied_id,
+      </if>
+      <if test="boardId != null" >
+        board_id,
+      </if>
+      <if test="content != null" >
+        content,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="datecreated != null" >
+        #{datecreated,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deleted != null" >
+        #{deleted,jdbcType=BIT},
+      </if>
+      <if test="version != null" >
+        #{version,jdbcType=INTEGER},
+      </if>
+      <if test="datelastreplied != null" >
+        #{datelastreplied,jdbcType=TIMESTAMP},
+      </if>
+      <if test="hit != null" >
+        #{hit,jdbcType=INTEGER},
+      </if>
+      <if test="ipcreated != null" >
+        #{ipcreated,jdbcType=VARCHAR},
+      </if>
+      <if test="readonly != null" >
+        #{readonly,jdbcType=BIT},
+      </if>
+      <if test="replycount != null" >
+        #{replycount,jdbcType=INTEGER},
+      </if>
+      <if test="title != null" >
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="topped != null" >
+        #{topped,jdbcType=BIT},
+      </if>
+      <if test="authorId != null" >
+        #{authorId,jdbcType=INTEGER},
+      </if>
+      <if test="authorLastRepliedId != null" >
+        #{authorLastRepliedId,jdbcType=INTEGER},
+      </if>
+      <if test="boardId != null" >
+        #{boardId,jdbcType=INTEGER},
+      </if>
+      <if test="content != null" >
+        #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+
+</mapper>

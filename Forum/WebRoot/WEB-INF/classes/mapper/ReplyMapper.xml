@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="mapper.ReplyMapper" >
+  <resultMap id="BaseResultMap" type="model.Reply" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="dateCreated" property="datecreated" jdbcType="TIMESTAMP" />
+    <result column="deleted" property="deleted" jdbcType="BIT" />
+    <result column="version" property="version" jdbcType="INTEGER" />
+    <result column="content" property="content" jdbcType="VARCHAR" />
+    <result column="floor" property="floor" jdbcType="INTEGER" />
+    <result column="ipCreated" property="ipcreated" jdbcType="VARCHAR" />
+    <result column="title" property="title" jdbcType="VARCHAR" />
+    <result column="author_id" property="authorId" jdbcType="INTEGER" />
+    <result column="thread_id" property="threadId" jdbcType="INTEGER" />
+  </resultMap>
+  <resultMap id="ReplyListResultMap" type="model.Reply" extends="BaseResultMap">
+	<association property="author" column="author_id" select="mapper.PersonMapper.selectByPrimaryKey" />
+  </resultMap>
+  <resultMap id="CollectionResultMap" type="model.Reply" extends="ReplyListResultMap">
+	<association property="thread" column="thread_id" select="mapper.ThreadMapper.findThreadByThread_id" />
+  </resultMap>
+
+  <sql id="Base_Column_List" >
+    id, dateCreated, deleted, version, content, floor, ipCreated, title, author_id, thread_id
+  </sql>
+  <select id="findReplyByReply_id" resultMap="CollectionResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from reply
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+  <select id="list" resultMap="ReplyListResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from reply
+    where thread_id = #{thread_id,jdbcType=INTEGER} order by id asc
+  </select>
+  
+  <select id="selectReplyCount" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+  	select count(*) from reply where thread_id = #{id,jdbcType=INTEGER}
+  </select>
+  
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from reply
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <insert id="insert" parameterType="model.Reply" >
+    insert into reply (id, dateCreated, deleted, 
+      version, content, floor, 
+      ipCreated, title, author_id, 
+      thread_id)
+    values (#{id,jdbcType=INTEGER}, #{datecreated,jdbcType=TIMESTAMP}, #{deleted,jdbcType=BIT}, 
+      #{version,jdbcType=INTEGER}, #{content,jdbcType=VARCHAR}, #{floor,jdbcType=INTEGER}, 
+      #{ipcreated,jdbcType=VARCHAR}, #{title,jdbcType=VARCHAR}, #{authorId,jdbcType=INTEGER}, 
+      #{threadId,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="model.Reply" >
+    insert into reply
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="datecreated != null" >
+        dateCreated,
+      </if>
+      <if test="deleted != null" >
+        deleted,
+      </if>
+      <if test="version != null" >
+        version,
+      </if>
+      <if test="content != null" >
+        content,
+      </if>
+      <if test="floor != null" >
+        floor,
+      </if>
+      <if test="ipcreated != null" >
+        ipCreated,
+      </if>
+      <if test="title != null" >
+        title,
+      </if>
+      <if test="authorId != null" >
+        author_id,
+      </if>
+      <if test="threadId != null" >
+        thread_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="datecreated != null" >
+        #{datecreated,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deleted != null" >
+        #{deleted,jdbcType=BIT},
+      </if>
+      <if test="version != null" >
+        #{version,jdbcType=INTEGER},
+      </if>
+      <if test="content != null" >
+        #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="floor != null" >
+        #{floor,jdbcType=INTEGER},
+      </if>
+      <if test="ipcreated != null" >
+        #{ipcreated,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null" >
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="authorId != null" >
+        #{authorId,jdbcType=INTEGER},
+      </if>
+      <if test="threadId != null" >
+        #{threadId,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+ 
+  <update id="updateByPrimaryKeySelective" parameterType="model.Reply" >
+    update reply
+    <set >
+      <if test="datecreated != null" >
+        dateCreated = #{datecreated,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deleted != null" >
+        deleted = #{deleted,jdbcType=BIT},
+      </if>
+      <if test="version != null" >
+        version = #{version,jdbcType=INTEGER},
+      </if>
+      <if test="content != null" >
+        content = #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="floor != null" >
+        floor = #{floor,jdbcType=INTEGER},
+      </if>
+      <if test="ipcreated != null" >
+        ipCreated = #{ipcreated,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null" >
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="authorId != null" >
+        author_id = #{authorId,jdbcType=INTEGER},
+      </if>
+      <if test="threadId != null" >
+        thread_id = #{threadId,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="model.Reply" >
+    update reply
+    set dateCreated = #{datecreated,jdbcType=TIMESTAMP},
+      deleted = #{deleted,jdbcType=BIT},
+      version = #{version,jdbcType=INTEGER},
+      content = #{content,jdbcType=VARCHAR},
+      floor = #{floor,jdbcType=INTEGER},
+      ipCreated = #{ipcreated,jdbcType=VARCHAR},
+      title = #{title,jdbcType=VARCHAR},
+      author_id = #{authorId,jdbcType=INTEGER},
+      thread_id = #{threadId,jdbcType=INTEGER}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>
